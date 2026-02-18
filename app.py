@@ -16,7 +16,6 @@ import slack_notifier
 app = Flask(__name__)
 
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
-MONEYBIRD_WEBHOOK_TOKEN = os.environ.get("MONEYBIRD_WEBHOOK_TOKEN", "")
 DOC_TYPE_LABEL = {"receipt": "Receipt", "purchase_invoice": "Purchase Invoice"}
 
 
@@ -133,16 +132,7 @@ def webhook():
 
     payload = request.get_json(force=True) or {}
 
-    # DEBUG: log incoming request
-    print(f"[WEBHOOK] headers: {dict(request.headers)}")
-    print(f"[WEBHOOK] payload keys: {list(payload.keys())}")
-    print(f"[WEBHOOK] token in payload: {payload.get('token', '(none)')}")
-
-    # Verify Moneybird webhook token
-    if MONEYBIRD_WEBHOOK_TOKEN:
-        incoming_token = payload.get("token") or request.headers.get("X-Moneybird-Webhook-Token", "")
-        if incoming_token != MONEYBIRD_WEBHOOK_TOKEN:
-            return jsonify({"error": "invalid token"}), 403
+    print(f"[WEBHOOK] entity_type={payload.get('entity_type')} action={payload.get('action')} id={payload.get('entity_id')}")
 
     entity_type = payload.get("entity_type", "")
     action = payload.get("action", "")
