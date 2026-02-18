@@ -124,6 +124,11 @@ def process_document(doc_type: str, doc_id: str):
 # Webhook endpoint (Moneybird → this app)
 # ---------------------------------------------------------------------------
 
+@app.route("/")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route("/webhook", methods=["POST", "GET"])
 def webhook():
     # Moneybird sends a GET to verify the URL on registration
@@ -139,9 +144,9 @@ def webhook():
     entity_id = str(payload.get("entity_id", ""))
 
     # Map Moneybird entity types to our doc types
-    if entity_type == "Receipt" and action in ("created", "updated"):
+    if entity_type in ("Receipt", "TypelessDocument") and action in ("created", "updated", "document_saved"):
         doc_type = "receipt"
-    elif entity_type == "PurchaseInvoice" and action in ("created", "updated"):
+    elif entity_type == "PurchaseInvoice" and action in ("created", "updated", "document_saved"):
         doc_type = "purchase_invoice"
     else:
         return jsonify({"status": "ignored"}), 200
