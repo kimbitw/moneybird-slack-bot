@@ -1,0 +1,6 @@
+flask
+gunicorn
+requests
+slack_sdk
+anthropic
+python-dotenv
