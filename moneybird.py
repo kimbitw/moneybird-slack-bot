@@ -29,6 +29,10 @@ def get_receipt(receipt_id):
     return _get(f"receipts/{receipt_id}")
 
 
+def get_typeless_document(doc_id):
+    return _get(f"documents/{doc_id}")
+
+
 def get_purchase_invoice(invoice_id):
     return _get(f"purchase_invoices/{invoice_id}")
 

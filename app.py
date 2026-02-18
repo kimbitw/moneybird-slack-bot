@@ -74,7 +74,10 @@ def process_document(doc_type: str, doc_id: str):
     """Full async pipeline: fetch → AI → Slack."""
     try:
         if doc_type == "receipt":
-            raw = moneybird.get_receipt(doc_id)
+            try:
+                raw = moneybird.get_receipt(doc_id)
+            except Exception:
+                raw = moneybird.get_typeless_document(doc_id)
         else:
             raw = moneybird.get_purchase_invoice(doc_id)
 
