@@ -140,18 +140,19 @@ def webhook():
 
     payload = request.get_json(force=True) or {}
 
-    print(f"[WEBHOOK] entity_type={payload.get('entity_type')} action={payload.get('action')} id={payload.get('entity_id')}")
+    print(f"[WEBHOOK] {json.dumps({k: payload.get(k) for k in ('entity_type','action','entity_id')})}")
 
     entity_type = payload.get("entity_type", "")
     action = payload.get("action", "")
     entity_id = str(payload.get("entity_id", ""))
 
     # Map Moneybird entity types to our doc types
-    if entity_type in ("Receipt", "TypelessDocument") and action in ("created", "updated", "document_saved"):
+    if entity_type == "Receipt" and action in ("created", "updated", "document_saved"):
         doc_type = "receipt"
     elif entity_type == "PurchaseInvoice" and action in ("created", "updated", "document_saved"):
         doc_type = "purchase_invoice"
     else:
+        print(f"[WEBHOOK] ignored entity_type={entity_type} action={action}")
         return jsonify({"status": "ignored"}), 200
 
     # Process asynchronously so we return 200 immediately
