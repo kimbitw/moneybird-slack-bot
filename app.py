@@ -133,6 +133,11 @@ def webhook():
 
     payload = request.get_json(force=True) or {}
 
+    # DEBUG: log incoming request
+    print(f"[WEBHOOK] headers: {dict(request.headers)}")
+    print(f"[WEBHOOK] payload keys: {list(payload.keys())}")
+    print(f"[WEBHOOK] token in payload: {payload.get('token', '(none)')}")
+
     # Verify Moneybird webhook token
     if MONEYBIRD_WEBHOOK_TOKEN:
         incoming_token = payload.get("token") or request.headers.get("X-Moneybird-Webhook-Token", "")
