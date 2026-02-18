@@ -147,7 +147,7 @@ def webhook():
     entity_id = str(payload.get("entity_id", ""))
 
     # Map Moneybird entity types to our doc types
-    if entity_type == "Receipt" and action in ("created", "updated", "document_saved"):
+    if entity_type in ("Receipt", "TypelessDocument") and action in ("created", "updated", "document_saved"):
         doc_type = "receipt"
     elif entity_type == "PurchaseInvoice" and action in ("created", "updated", "document_saved"):
         doc_type = "purchase_invoice"
