@@ -135,7 +135,7 @@ def webhook():
 
     # Verify Moneybird webhook token
     if MONEYBIRD_WEBHOOK_TOKEN:
-        incoming_token = payload.get("token", "")
+        incoming_token = payload.get("token") or request.headers.get("X-Moneybird-Webhook-Token", "")
         if incoming_token != MONEYBIRD_WEBHOOK_TOKEN:
             return jsonify({"error": "invalid token"}), 403
 
