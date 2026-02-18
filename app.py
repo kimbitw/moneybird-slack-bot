@@ -48,13 +48,23 @@ def extract_doc_info(raw: dict, doc_type: str) -> dict:
     elif raw.get("contact_id"):
         contact_name = raw.get("contact_id", "")
 
-    amount = raw.get("total_amount") or raw.get("total_amount_incl_tax") or "0"
+    amount = (
+        raw.get("total_price_incl_tax")
+        or raw.get("total_amount_incl_tax")
+        or raw.get("total_amount")
+        or "0"
+    )
 
     line_items = []
     for item in raw.get("details", []):
         line_items.append({
             "description": item.get("description", ""),
-            "total_amount": item.get("total_amount_incl_tax") or item.get("total_amount", ""),
+            "total_amount": (
+                item.get("total_price_excl_tax_with_discount")
+                or item.get("price")
+                or item.get("total_amount_incl_tax")
+                or item.get("total_amount", "")
+            ),
         })
 
     return {
