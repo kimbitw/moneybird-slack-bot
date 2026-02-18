@@ -84,10 +84,7 @@ def process_document(doc_type: str, doc_id: str):
     """Full async pipeline: fetch → AI → Slack."""
     try:
         if doc_type == "receipt":
-            try:
-                raw = moneybird.get_receipt(doc_id)
-            except Exception:
-                raw = moneybird.get_typeless_document(doc_id)
+            raw = moneybird.get_receipt(doc_id)
         else:
             raw = moneybird.get_purchase_invoice(doc_id)
 
@@ -157,7 +154,10 @@ def webhook():
     entity_id = str(payload.get("entity_id", ""))
 
     # Map Moneybird entity types to our doc types
-    if entity_type in ("Receipt", "TypelessDocument") and action in ("created", "updated", "document_saved"):
+    # TypelessDocument is the pre-OCR inbox item — it has no amount/contact yet.
+    # Moneybird will create a proper Receipt (with a different ID) after OCR, and
+    # send another webhook then.  We skip TypelessDocument and wait for Receipt.
+    if entity_type == "Receipt" and action in ("created", "updated", "document_saved"):
         doc_type = "receipt"
     elif entity_type == "PurchaseInvoice" and action in ("created", "updated", "document_saved"):
         doc_type = "purchase_invoice"
