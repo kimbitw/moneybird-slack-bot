@@ -39,7 +39,7 @@ def get_purchase_invoice(invoice_id):
 
 def get_attachment_content(document_type, document_id, attachment_id):
     """Returns (bytes, content_type) of the attachment."""
-    url = f"{BASE_URL}/documents/{document_type}/{document_id}/attachments/{attachment_id}"
+    url = f"{BASE_URL}/documents/{document_type}/{document_id}/attachments/{attachment_id}/download"
     r = requests.get(url, headers=HEADERS)
     r.raise_for_status()
     content_type = r.headers.get("Content-Type", "application/octet-stream")
