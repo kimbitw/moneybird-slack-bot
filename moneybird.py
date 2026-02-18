@@ -26,20 +26,20 @@ def _patch(path, payload):
 # --- Document fetchers ---
 
 def get_receipt(receipt_id):
-    return _get(f"receipts/{receipt_id}")
+    return _get(f"documents/receipts/{receipt_id}")
 
 
 def get_typeless_document(doc_id):
-    return _get(f"documents/{doc_id}")
+    return _get(f"documents/typeless_documents/{doc_id}")
 
 
 def get_purchase_invoice(invoice_id):
-    return _get(f"purchase_invoices/{invoice_id}")
+    return _get(f"documents/purchase_invoices/{invoice_id}")
 
 
 def get_attachment_content(document_type, document_id, attachment_id):
     """Returns (bytes, content_type) of the attachment."""
-    url = f"{BASE_URL}/{document_type}/{document_id}/attachments/{attachment_id}"
+    url = f"{BASE_URL}/documents/{document_type}/{document_id}/attachments/{attachment_id}"
     r = requests.get(url, headers=HEADERS)
     r.raise_for_status()
     content_type = r.headers.get("Content-Type", "application/octet-stream")
@@ -50,13 +50,13 @@ def get_attachment_content(document_type, document_id, attachment_id):
 
 def book_receipt(receipt_id):
     """Mark receipt as booked."""
-    return _patch(f"receipts/{receipt_id}", {"receipt": {"state": "booked"}})
+    return _patch(f"documents/receipts/{receipt_id}", {"receipt": {"state": "booked"}})
 
 
 def book_purchase_invoice(invoice_id):
     """Mark purchase invoice as booked."""
     return _patch(
-        f"purchase_invoices/{invoice_id}",
+        f"documents/purchase_invoices/{invoice_id}",
         {"purchase_invoice": {"state": "booked"}},
     )
 
@@ -103,7 +103,7 @@ def find_payment_candidates(amount_cents, contact_name=None, tolerance_cents=100
 def link_payment_to_receipt(receipt_id, financial_mutation_id):
     """Link a bank transaction to a receipt as payment."""
     return _patch(
-        f"receipts/{receipt_id}",
+        f"documents/receipts/{receipt_id}",
         {
             "receipt": {
                 "financial_mutations_attributes": [
@@ -117,7 +117,7 @@ def link_payment_to_receipt(receipt_id, financial_mutation_id):
 def link_payment_to_purchase_invoice(invoice_id, financial_mutation_id):
     """Link a bank transaction to a purchase invoice as payment."""
     return _patch(
-        f"purchase_invoices/{invoice_id}",
+        f"documents/purchase_invoices/{invoice_id}",
         {
             "purchase_invoice": {
                 "payments_attributes": [
