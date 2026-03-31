@@ -19,15 +19,11 @@ headers = {
 }
 
 payload = {
-    "webhook": {
-        "url": RENDER_URL,
-        "events": [
-            "receipt_created",
-            "receipt_updated",
-            "purchase_invoice_created",
-            "purchase_invoice_updated",
-        ],
-    }
+    "url": RENDER_URL,
+    "enabled_events": [
+        "document_saved",
+        "document_updated",
+    ],
 }
 r = requests.post(
     f"https://moneybird.com/api/v2/{ADMIN_ID}/webhooks",
