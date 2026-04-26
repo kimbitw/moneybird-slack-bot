@@ -4,3 +4,6 @@ requests
 slack_sdk
 anthropic
 python-dotenv
+fastmcp
+uvicorn
+starlette
