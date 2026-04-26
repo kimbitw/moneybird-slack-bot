@@ -5,12 +5,15 @@ Claude Code Routine (Scheduled Agent).
 Run:
     uvicorn mcp_server:app --host 0.0.0.0 --port $PORT
 
-Auth: simple Bearer token via env var MCP_AUTH_TOKEN.
+Auth: the value of MCP_AUTH_TOKEN is used as a URL path prefix. Anthropic's
+Custom Connector dialog only exposes OAuth fields, so we use a "secret in
+the URL" pattern (same as Slack incoming webhooks). The MCP endpoint is at
+    /<MCP_AUTH_TOKEN>/mcp
+Anyone who doesn't know the token gets a 404.
 
 Env vars consumed (in addition to existing SLACK_BOT_TOKEN /
 MONEYBIRD_TOKEN / MONEYBIRD_ADMINISTRATION_ID):
-    MCP_AUTH_TOKEN  shared secret the Routine sends as
-                    'Authorization: Bearer <token>'.
+    MCP_AUTH_TOKEN  shared secret used as URL path prefix.
 """
 import os
 from typing import Any
@@ -19,8 +22,6 @@ from fastmcp import FastMCP
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from starlette.applications import Starlette
-from starlette.middleware import Middleware
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
@@ -351,39 +352,22 @@ def mb_delete_sales_invoice(invoice_id: str) -> dict:
 
 
 # =====================================================================
-# Auth + ASGI app
+# ASGI app — auth via "secret in URL path"
 # =====================================================================
-
-class BearerAuthMiddleware(BaseHTTPMiddleware):
-    """Reject any request without 'Authorization: Bearer <MCP_AUTH_TOKEN>'."""
-
-    async def dispatch(self, request, call_next):
-        # Allow unauthenticated health check
-        if request.url.path == "/health":
-            return await call_next(request)
-
-        header = request.headers.get("authorization", "")
-        if not header.lower().startswith("bearer "):
-            return JSONResponse({"error": "missing bearer token"}, status_code=401)
-        token = header.split(" ", 1)[1].strip()
-        if token != MCP_AUTH_TOKEN:
-            return JSONResponse({"error": "invalid bearer token"}, status_code=401)
-        return await call_next(request)
-
 
 async def health(_request):
     return JSONResponse({"status": "ok"})
 
 
-# Build the underlying MCP HTTP app (streamable-http transport, default in
-# FastMCP 2.x) and wrap with the bearer-auth middleware.
+# Build the MCP HTTP app and mount it under /<MCP_AUTH_TOKEN>.
+# The token-prefixed mount means: if you don't know the token, you get a
+# 404 from Starlette's router. No middleware needed.
 mcp_http_app = mcp.http_app(path="/mcp")
 
 app = Starlette(
     routes=[
         Route("/health", health, methods=["GET"]),
-        Mount("/", app=mcp_http_app),
+        Mount(f"/{MCP_AUTH_TOKEN}", app=mcp_http_app),
     ],
-    middleware=[Middleware(BearerAuthMiddleware)],
     lifespan=mcp_http_app.lifespan,
 )
