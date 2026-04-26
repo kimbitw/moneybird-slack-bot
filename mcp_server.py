@@ -13,7 +13,6 @@ MONEYBIRD_TOKEN / MONEYBIRD_ADMINISTRATION_ID):
                     'Authorization: Bearer <token>'.
 """
 import os
-import json
 from typing import Any
 
 from fastmcp import FastMCP
@@ -376,8 +375,9 @@ async def health(_request):
     return JSONResponse({"status": "ok"})
 
 
-# Build the underlying MCP HTTP app and wrap with auth.
-mcp_http_app = mcp.streamable_http_app()
+# Build the underlying MCP HTTP app (streamable-http transport, default in
+# FastMCP 2.x) and wrap with the bearer-auth middleware.
+mcp_http_app = mcp.http_app(path="/mcp")
 
 app = Starlette(
     routes=[
@@ -385,5 +385,5 @@ app = Starlette(
         Mount("/", app=mcp_http_app),
     ],
     middleware=[Middleware(BearerAuthMiddleware)],
-    lifespan=mcp_http_app.router.lifespan_context,
+    lifespan=mcp_http_app.lifespan,
 )
